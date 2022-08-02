@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: user-service-test
+  name: user-service-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: user-service-test
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/sail: "true"
+        service: user-service-test
+    spec:
+      containers:
+        - env:
+            - name: LARAVEL_SAIL
+              value: "1"
+            - name: WWWUSER
+            - name: XDEBUG_CONFIG
+              value: client_host=host.docker.internal
+            - name: XDEBUG_MODE
+              value: "off"
+          image: sail-8.1/app
+          name: user-service.test
+          ports:
+            - containerPort: 80
+            - containerPort: 5173
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: user-service-test-claim0
+      restartPolicy: Always
+      volumes:
+        - name: user-service-test-claim0
+          persistentVolumeClaim:
+            claimName: user-service-test-claim0
+status: {}

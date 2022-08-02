@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: meilisearch
+  name: meilisearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: meilisearch
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/sail: "true"
+        service: meilisearch
+    spec:
+      containers:
+        - image: getmeili/meilisearch:latest
+          livenessProbe:
+            exec:
+              command:
+                - wget
+                - --no-verbose
+                - --spider
+                - http://localhost:7700/health
+            failureThreshold: 3
+            timeoutSeconds: 5
+          name: meilisearch
+          ports:
+            - containerPort: 7700
+          resources: {}
+          volumeMounts:
+            - mountPath: /meili_data
+              name: sail-meilisearch
+      restartPolicy: Always
+      volumes:
+        - name: sail-meilisearch
+          persistentVolumeClaim:
+            claimName: sail-meilisearch
+status: {}

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: selenium
+  name: selenium
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: selenium
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/sail: "true"
+        service: selenium
+    spec:
+      containers:
+        - image: selenium/standalone-chrome
+          name: selenium
+          resources: {}
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: selenium-claim0
+      restartPolicy: Always
+      volumes:
+        - name: selenium-claim0
+          persistentVolumeClaim:
+            claimName: selenium-claim0
+status: {}
