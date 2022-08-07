@@ -29,7 +29,7 @@ spec:
             - name: XDEBUG_MODE
               value: "off"
           image: sail-8.1/app
-          name: user-service.test
+          name: user-service-test
           ports:
             - containerPort: 80
             - containerPort: 5173

@@ -50,9 +50,9 @@ spec:
       restartPolicy: Always
       volumes:
         - name: sail-mysql
-          persistentVolumeClaim:
+          persistentVolumeClaim: 
             claimName: sail-mysql
         - name: mysql-claim1
-          persistentVolumeClaim:
-            claimName: mysql-claim1
+          configMap:
+            name: mysql-claim1
 status: {}
