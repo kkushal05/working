@@ -1,0 +1,251 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: nginx
+  name: nginx
+spec:
+  ports:
+    - name: "80"
+      port: 80
+      targetPort: 80
+    - name: "443"
+      port: 443
+      targetPort: 443
+    - name: "81"
+      port: 81
+      targetPort: 81
+  selector:
+    io.kompose.service: nginx
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: nginx
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: nginx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/backend: "true"
+        network/frontend: "true"
+        service: nginx
+    spec:
+      containers:
+      envFrom:
+        - configMapRef:
+          name: env-config
+        - image: nginx
+          name: nginx
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+            - containerPort: 81
+          resources: {}
+          volumeMounts:
+            - mountPath: ${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+              name: app-code-pvc
+            - mountPath: /var/log/nginx
+              name: nginx-log-pvc
+            - mountPath: /etc/nginx/sites-available
+              name: nginx-sites-pvc
+            - mountPath: /etc/nginx/ssl
+              name: nginx-ssl-pvc
+      restartPolicy: Always
+      volumes:
+        - name: app-code-pvc
+          persistentVolumeClaim:
+            claimName: app-code-pvc
+        - name: nginx-log-pvc
+          persistentVolumeClaim:
+            claimName: nginx-log-pvc
+        - name: nginx-sites-pvc
+          persistentVolumeClaim:
+            claimName: nginx-sites-pvc
+        - name: nginx-ssl-pvc
+          persistentVolumeClaim:
+            claimName: nginx-ssl-pvc
+status: {}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: app-code-pv
+  labels:
+     name: app-code-pv
+spec:
+  capacity:
+    storage: 100Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: ../src/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-log-pv
+  labels:
+     name: nginx-log-pv
+spec:
+  capacity:
+    storage: 100Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: ./logs/nginx/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-sites-pv
+  labels:
+     name: nginx-sites-pv
+spec:
+  capacity:
+    storage: 100Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: ./nginx/sites/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-ssl-pv
+  labels:
+     name: nginx-ssl-pv
+spec:
+  capacity:
+    storage: 100Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: ./nginx/ssl/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube 
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    service: app-code-pvc
+  name: app-code-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: local-storage
+  volumeMode: Filesystem
+  volumeName: app-code-pv
+status: {}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    service: nginx-sites-pvc
+  name: nginx-sites-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: local-storage
+  volumeMode: Filesystem
+  volumeName: nginx-sites-pv
+status: {}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    service: nginx-ssl-pvc
+  name: nginx-ssl-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: local-storage
+  volumeMode: Filesystem
+  volumeName: nginx-ssl-pv
+status: {}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    service: nginx-log-pvc
+  name: nginx-log-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: local-storage
+  volumeMode: Filesystem
+  volumeName: nginx-log-pv
+status: {}
